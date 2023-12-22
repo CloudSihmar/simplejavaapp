@@ -11,6 +11,38 @@ pipeline {
         }
        // Git stage ends
        
+       // Static Code Analysis starts
+       stage('Static code analysis') {
+            environment {
+               SCANNER_HOME = tool 'sonar-scanner'
+             }
+        steps {
+          withSonarQubeEnv('sonar-server') {
+         sh """${SCANNER_HOME}/bin/sonar-scanner \\
+                -Dsonar.projectKey=sampleapp \\
+                -Dsonar.projectName=sampleapp\\
+                -Dsonar.projectVersion=${BUILD_NUMBER} \\
+                -Dsonar.sources=src/main/java \\
+                -Dsonar.tests=src/test/java \\
+                -Dsonar.exclusions='src/main/resources/**/*.java,src/test/**/*.java,src/pmd/**/*,**/*.properties'
+            """
+       }
+     }
+       }
+       // static code analysis starts
+       
+       // Quality Gate stage starts
+       
+       stage("quality gate"){
+           steps {
+                script {
+                    waitForQualityGate abortPipeline: true, credentialsId: 'Sonar-token' 
+                }
+            } 
+        }
+       
+       // Quality Gate ends
+       
        // Build stage starts 
         stage('build') {
             steps {
