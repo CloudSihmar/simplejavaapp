@@ -1,0 +1,42 @@
+pipeline {
+    agent any
+
+    stages {
+        
+        // Git Stage starts
+        stage('checkout from git') {
+            steps {
+                git 'https://github.com/CloudSihmar/simplejavaapp.git'
+            }
+        }
+       // Git stage ends
+       
+       // Build stage starts 
+        stage('build') {
+            steps {
+                withCredentials([usernameColonPassword(credentialsId: 'dockerhub', variable: 'docker-creds'), usernamePassword(credentialsId: 'dockerhub', passwordVariable: 'dockerpassword', usernameVariable: 'dockerusername')]) {
+                       
+                        // Login to Docker Hub
+                        sh "docker login -u ${dockerUsername} -p ${dockerPassword}"
+
+                        // Build and push Docker image
+                        sh "docker build -t cloudsihmar/sampleapp:${BUILD_NUMBER} ."
+                        sh "docker push cloudsihmar/sampleapp:${BUILD_NUMBER}"
+                    }
+                    }
+                      }
+        // build stage ends
+        
+        
+        // Trivy scan starts
+          stage("TRIVY-IMAGE-SCAN"){
+            steps{
+                sh "trivy image cloudsihmar/sampleapp:${BUILD_NUMBER} > trivyimagescan.txt" 
+                 }
+                   }
+        // Trivy stage ends
+        
+        
+                
+     }
+ }
