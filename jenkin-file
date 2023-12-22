@@ -6,7 +6,7 @@ pipeline {
         // Git Stage starts
         stage('checkout from git') {
             steps {
-                git 'https://github.com/CloudSihmar/simplejavaapp.git'
+                git branch: 'main', url: 'https://github.com/CloudSihmar/simplejavaapp.git'
             }
         }
        // Git stage ends
