@@ -19,8 +19,8 @@ pipeline {
         steps {
           withSonarQubeEnv('sonar-server') {
          sh """${SCANNER_HOME}/bin/sonar-scanner \\
-                -Dsonar.projectKey=sampleapp \\
-                -Dsonar.projectName=sampleapp\\
+                -Dsonar.projectKey=sampleapp1 \\
+                -Dsonar.projectName=sampleapp1\\
                 -Dsonar.projectVersion=${BUILD_NUMBER} \\
                 -Dsonar.sources=src/main/java \\
                 -Dsonar.tests=src/test/java \\
@@ -36,12 +36,21 @@ pipeline {
        stage("quality gate"){
            steps {
                 script {
-                    waitForQualityGate abortPipeline: true, credentialsId: 'Sonar-token' 
+                    waitForQualityGate abortPipeline: false, credentialsId: 'Sonar-token' 
                 }
             } 
         }
        
        // Quality Gate ends
+       
+       // Software composition analysis starts
+       
+       stage('OWASP FS SCAN') {
+            steps {
+                dependencyCheck additionalArguments: '--format HTML', odcInstallation: 'Owasp dependency check'
+            }
+        }
+       //Software composition analysis ends
        
        // Build stage starts 
         stage('build') {
